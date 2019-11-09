@@ -1,52 +1,89 @@
-/**
- * Layout component that queries for data
- * with Gatsby's useStaticQuery component
- *
- * See: https://www.gatsbyjs.org/docs/use-static-query/
- */
-
 import React from "react"
-import PropTypes from "prop-types"
-import { useStaticQuery, graphql } from "gatsby"
+import { StaticQuery, graphql } from "gatsby"
+import Sidebar from "react-sidebar"
+import Helmet from "react-helmet"
 
-import Header from "./header"
+import Header from "./Header/Header"
+import Footer from "./Footer/Footer"
+import {
+  HamburgerNavWrapper,
+  StyledAnchorTag,
+} from "../components/layoutStyles"
 import "./layout.css"
 
-const Layout = ({ children }) => {
-  const data = useStaticQuery(graphql`
-    query SiteTitleQuery {
-      site {
-        siteMetadata {
-          title
-        }
-      }
-    }
-  `)
-
+const HamburgerNavigation = ({ toggleSideBarOff }) => {
   return (
     <>
-      <Header siteTitle={data.site.siteMetadata.title} />
-      <div
-        style={{
-          margin: `0 auto`,
-          maxWidth: 960,
-          padding: `0px 1.0875rem 1.45rem`,
-          paddingTop: 0,
-        }}
-      >
-        <main>{children}</main>
-        <footer>
-          © {new Date().getFullYear()}, Built with
-          {` `}
-          <a href="https://www.gatsbyjs.org">Gatsby</a>
-        </footer>
-      </div>
+      <HamburgerNavWrapper>
+        <StyledAnchorTag onClick={toggleSideBarOff} to="/">
+          Home
+        </StyledAnchorTag>
+        <StyledAnchorTag onClick={toggleSideBarOff} to="/portfolio">
+          Portfolio
+        </StyledAnchorTag>
+      </HamburgerNavWrapper>
     </>
   )
 }
 
-Layout.propTypes = {
-  children: PropTypes.node.isRequired,
+class Layout extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      sidebarOpen: false,
+    }
+  }
+
+  closeSidebar = () => {
+    this.setState({
+      sidebarOpen: false,
+    })
+  }
+
+  onSetSidebarOpen = open => {
+    this.setState({ sidebarOpen: open })
+  }
+
+  render() {
+    const { children } = this.props
+    return (
+      <StaticQuery
+        query={graphql`
+          query SiteTitleQuery {
+            site {
+              siteMetadata {
+                title
+              }
+            }
+          }
+        `}
+        render={data => (
+          <div>
+            <Helmet>
+              <link href="dist/hamburgers.css" rel="stylesheet" />>
+            </Helmet>
+            <Sidebar
+              sidebar={
+                <HamburgerNavigation toggleSideBarOff={this.closeSidebar} />
+              }
+              open={this.state.sidebarOpen}
+              styles={{
+                sidebar: {
+                  background: "#f4f6f9",
+                  width: "150px",
+                },
+              }}
+              onSetOpen={this.onSetSidebarOpen}
+            >
+              <Header openSideBar={this.onSetSidebarOpen} />
+              {children}
+              <Footer />
+            </Sidebar>
+          </div>
+        )}
+      />
+    )
+  }
 }
 
 export default Layout
